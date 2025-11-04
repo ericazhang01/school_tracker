@@ -8,9 +8,9 @@ const DB_PASS = process.env.DB_PASS;
 const DB_USER = process.env.DB_USER;
 const port = 3000;
 
+let dbJSON = [];
 
 const uri = `mongodb+srv://${DB_USER}:${DB_PASS}@teachers.gc04dw7.mongodb.net/?appName=Teachers`;
-console.log(uri);
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -24,8 +24,9 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("Chris Peters").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    const database = client.db("Teachers");
+    const chrissy = database.collection("Chris Peters");
+    dbJSON = await chrissy.find().toArray();
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -33,8 +34,12 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.use('/', express.static("src/"));
+app.use('/web', express.static('./src'));
+
+app.get('/', (req, res) => {
+  res.json(dbJSON);
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
-})
+});
